@@ -46,6 +46,11 @@ planets_map = {
 houses = ["ลัคนา", "กดุมภะ", "สหัชชะ", "พันธุ", "ปุตตะ", "อริ", 
           "ปัตนิ", "มรณะ", "ศุภะ", "กัมมะ", "ลาภะ", "วินาศ"]
 
+# ฟังก์ชันสำหรับล้างข้อมูลการเลือกดาวทั้งหมด
+def clear_selections():
+    for house in houses:
+        st.session_state[f"sel_{house}"] = []
+
 # สร้าง Dictionary เพื่อเก็บชื่อสำหรับแสดงผลในช่องเลือกดาว
 house_labels = {
     "ลัคนา": "สถิตร่วมกับลัคนา",
@@ -93,6 +98,9 @@ selections_thai_nums = {}
 # --- คอลัมน์กลาง: ตัวเลือกดาว (เรียงยาวลงมาแถวเดียว) ---
 with col_mid:
     st.markdown("<h3 style='text-align: center; color: #334155; margin-bottom: 20px;'>📝 ระบุดาวสถิต</h3>", unsafe_allow_html=True)
+    
+    # เพิ่มปุ่มล้างข้อมูลทั้งหมดตรงนี้
+    st.button("🔄 ล้างข้อมูลทั้งหมด", on_click=clear_selections, use_container_width=True)
     
     for house in houses:
         selected = st.multiselect(
@@ -168,13 +176,14 @@ with col_right:
                             border_color = "#fbcfe8"  # กรอบสีชมพู
                             accent_color = "#ec4899"  # แถบและตัวหนังสือสีชมพูเข้ม
                         
+                        # แก้ไขตรงนี้ นำเครื่องหมาย " ออกจากข้อความ
                         html_card = (
                             f'<div style="font-family: \'Sarabun\', sans-serif; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {accent_color}; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">'
                             f'<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px;">'
                             f'<span style="font-size: 15px; font-weight: 600; color: #64748b; letter-spacing: 0.5px;">{position_title}</span>'
                             f'<span style="background-color: white; color: {accent_color}; padding: 4px 14px; border-radius: 9999px; font-weight: bold; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">{planet}</span>'
                             f'</div>'
-                            f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">"{result_data["text"]}"</p>'
+                            f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{result_data["text"]}</p>'
                             f'</div>'
                         )
                         st.markdown(html_card, unsafe_allow_html=True)
