@@ -11,6 +11,7 @@ from data_subha import subha_data
 from data_kamma import kamma_data
 from data_lapha import lapha_data
 from data_winat import winat_data
+from data_zodiac_planets import zodiac_planets_data  # นำเข้าข้อมูลคำทำนายรายราศีที่เพิ่งสร้างใหม่
 
 # ตั้งค่าหน้าเพจ Streamlit เป็นแบบ Wide เพื่อให้มีพื้นที่สำหรับ 3 คอลัมน์
 st.set_page_config(
@@ -171,6 +172,18 @@ with col_left:
 with col_right:
     st.markdown("<h3 style='text-align: center; color: #334155; margin-bottom: 20px;'>✨ ความหมายดาว</h3>", unsafe_allow_html=True)
     
+    # 1. คำนวณหาว่าแต่ละภพตรงกับราศีอะไร (หากผู้ใช้เลือกลัคนาราศีแล้ว)
+    house_zodiac_map = {}
+    if ascendant_sign != "ไม่ระบุ":
+        # หาระยะห่างของราศี (Index 0-11)
+        asc_idx = zodiac_signs.index(ascendant_sign) - 1 
+        for i, h in enumerate(houses):
+            # นับเรียงราศีไปทีละภพ
+            z_idx = (asc_idx + i) % 12
+            sign_name = zodiac_signs[z_idx + 1]
+            # จัดการชื่อกรณีพิจิกให้ตรงกับ Key ของเรา
+            house_zodiac_map[h] = "พิจิก" if "พิจิก" in sign_name else sign_name
+
     if selections_names:
         has_prediction = False
         
@@ -184,7 +197,7 @@ with col_right:
                     if planet in db_info["data"]:
                         result_data = db_info["data"][planet]
                         
-                        # กำหนดสีและข้อความเริ่มต้นจากฐานข้อมูล
+                        # กำหนดสีและข้อความเริ่มต้นจากฐานข้อมูลหลัก
                         bg_color = result_data["bg"]
                         border_color = result_data["border"]
                         accent_color = result_data["color"]
@@ -203,14 +216,31 @@ with col_right:
                             bg_color = "#ecfdf5"
                             border_color = "#a7f3d0"
                             accent_color = "#059669"
+                            
+                        # 2. ค้นหาคำทำนายตามราศี (หากมีข้อมูลที่เชื่อมกันไว้)
+                        zodiac_section = ""
+                        if house in house_zodiac_map:
+                            current_zodiac = house_zodiac_map[house]
+                            # ดึงคำทำนายราศีจาก data_zodiac_planets
+                            zodiac_pred_info = zodiac_planets_data.get(current_zodiac, {}).get(planet)
+                            if zodiac_pred_info:
+                                zodiac_text = zodiac_pred_info["text"]
+                                zodiac_section = (
+                                    f'<div style="border-top: 1px dashed rgba(0,0,0,0.1); margin: 12px 0; padding-top: 12px;"></div>'
+                                    f'<span style="font-size: 13px; font-weight: 600; color: {accent_color}; margin-bottom: 4px; display: block; opacity: 0.8;">ความหมายดาวสถิตราศี{current_zodiac}</span>'
+                                    f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{zodiac_text}</p>'
+                                )
                         
+                        # สร้าง HTML Card โดยรวมส่วนคำทำนายภพ และคำทำนายราศีเข้าด้วยกัน
                         html_card = (
                             f'<div style="font-family: \'Sarabun\', sans-serif; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {accent_color}; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">'
                             f'<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px;">'
                             f'<span style="font-size: 15px; font-weight: 600; color: #64748b; letter-spacing: 0.5px;">{position_title}</span>'
                             f'<span style="background-color: white; color: {accent_color}; padding: 4px 14px; border-radius: 9999px; font-weight: bold; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">{planet}</span>'
                             f'</div>'
+                            f'<span style="font-size: 13px; font-weight: 600; color: {accent_color}; margin-bottom: 4px; display: block; opacity: 0.8;">ความหมายตามภพ ({house})</span>'
                             f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{prediction_text}</p>'
+                            f'{zodiac_section}'
                             f'</div>'
                         )
                         st.markdown(html_card, unsafe_allow_html=True)
