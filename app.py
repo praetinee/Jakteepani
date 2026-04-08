@@ -19,18 +19,13 @@ st.set_page_config(
     layout="wide"
 )
 
-# ฝัง CSS เพื่อบังคับใช้ฟอนต์ Sarabun ทั้งหน้าเว็บ และจัดคอลัมน์กึ่งกลางแนวตั้ง
+# ฝัง CSS เพื่อบังคับใช้ฟอนต์ Sarabun ทั้งหน้าเว็บ (เอาส่วนจัดกึ่งกลางแนวตั้งออก เพื่อให้หัวข้ออยู่บนสุดเสมอ)
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
 
 html, body, [class*="css"], div, span, h1, h2, h3, h4, h5, h6, p, a, label, button, input, select {
     font-family: 'Sarabun', sans-serif !important;
-}
-
-/* จัดกึ่งกลางคอลัมน์ตามแนวตั้ง */
-[data-testid="stHorizontalBlock"] {
-    align-items: center;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -162,11 +157,22 @@ with col_right:
                     if planet in db_info["data"]:
                         result_data = db_info["data"][planet]
                         
+                        # กำหนดสีเริ่มต้นจากฐานข้อมูล
+                        bg_color = result_data["bg"]
+                        border_color = result_data["border"]
+                        accent_color = result_data["color"]
+                        
+                        # แทรกการเปลี่ยนสีพระอังคารให้เป็นโทนสีชมพู
+                        if planet == "พระอังคาร (3)":
+                            bg_color = "#fdf2f8"      # พื้นหลังสีชมพูอ่อน
+                            border_color = "#fbcfe8"  # กรอบสีชมพู
+                            accent_color = "#ec4899"  # แถบและตัวหนังสือสีชมพูเข้ม
+                        
                         html_card = (
-                            f'<div style="font-family: \'Sarabun\', sans-serif; background-color: {result_data["bg"]}; border: 1px solid {result_data["border"]}; border-left: 6px solid {result_data["color"]}; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">'
+                            f'<div style="font-family: \'Sarabun\', sans-serif; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {accent_color}; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">'
                             f'<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px;">'
                             f'<span style="font-size: 15px; font-weight: 600; color: #64748b; letter-spacing: 0.5px;">{position_title}</span>'
-                            f'<span style="background-color: white; color: {result_data["color"]}; padding: 4px 14px; border-radius: 9999px; font-weight: bold; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">{planet}</span>'
+                            f'<span style="background-color: white; color: {accent_color}; padding: 4px 14px; border-radius: 9999px; font-weight: bold; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">{planet}</span>'
                             f'</div>'
                             f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">"{result_data["text"]}"</p>'
                             f'</div>'
