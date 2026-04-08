@@ -5,6 +5,9 @@ from data_sahatcha import sahatcha_data
 from data_puntu import puntu_data
 from data_putta import putta_data
 from data_ari import ari_data
+from data_patni import patni_data
+from data_morana import morana_data
+from data_subha import subha_data
 
 # ตั้งค่าหน้าเพจ Streamlit เป็นแบบ Wide เพื่อให้มีพื้นที่สำหรับ 2 คอลัมน์
 st.set_page_config(
@@ -48,10 +51,13 @@ astrology_database = {
     "พันธุ": {"title": "เป็นสี่กับลัคนา (ภพพันธุ)", "data": puntu_data},
     "ปุตตะ": {"title": "เป็นห้ากับลัคนา (ภพปุตตะ)", "data": putta_data},
     "อริ": {"title": "เป็นหกกับลัคนา (ภพอริ)", "data": ari_data},
+    "ปัตนิ": {"title": "เป็นเจ็ดกับลัคนา (ภพปัตนิ)", "data": patni_data},
+    "มรณะ": {"title": "เป็นแปดกับลัคนา (ภพมรณะ)", "data": morana_data},
+    "ศุภะ": {"title": "เป็นเก้ากับลัคนา (ภพศุภะ)", "data": subha_data},
 }
 
 # ส่วนหัวของแอปพลิเคชัน
-st.markdown("<h1 style='text-align: center;'>Chakkathipani</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>⭐ คำทำนายดวงดาวกำเนิด</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #64748b; margin-bottom: 30px;'>ระบุดาวลงในภพต่างๆ เพื่อสร้างผังราศีจักรและอ่านคำทำนายจากคัมภีร์จักรทีปนี</p>", unsafe_allow_html=True)
 st.divider()
 
@@ -144,6 +150,6 @@ if selections_names:
                     st.markdown(html_card, unsafe_allow_html=True)
                 
     if not has_prediction:
-        st.info(" ท่านได้กรอกดาวลงในตารางราศีจักรแล้ว (คำทำนายในภพที่เลือกจะถูกอัปเดตเข้าระบบในภายหลัง)")
+        st.info("ท่านได้กรอกดาวลงในตารางราศีจักรแล้ว (คำทำนายในภพที่เลือกจะถูกอัปเดตเข้าระบบในภายหลัง)")
 else:
-    st.info(" โปรดเลือกดาวที่สถิตในตำแหน่งต่างๆ อย่างน้อย 1 ดวง เพื่อดูตารางและผลคำทำนาย")
+    st.info("โปรดเลือกดาวที่สถิตในตำแหน่งต่างๆ อย่างน้อย 1 ดวง เพื่อดูตารางและผลคำทำนาย")
