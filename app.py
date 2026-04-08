@@ -13,6 +13,7 @@ from data_lapha import lapha_data
 from data_winat import winat_data
 from data_zodiac_planets import zodiac_planets_data
 from data_special_rules import special_rules
+from data_neech import neech_data # นำเข้าข้อมูลมาตรฐานนิจ
 
 # ตั้งค่าหน้าเพจ Streamlit
 st.set_page_config(page_title="Chakkathipani", page_icon="⭐", layout="wide")
@@ -71,12 +72,10 @@ st.divider()
 
 col_left, col_mid, col_right = st.columns([1.2, 1, 1.5], gap="large")
 
-# ตรวจสอบและสร้าง Session State สำหรับเก็บดาวที่เลือก
 for house in houses:
     if f"sel_{house}" not in st.session_state:
         st.session_state[f"sel_{house}"] = []
 
-# คำนวณหา "ดาวทั้งหมดที่ถูกเลือกไปแล้วในทุกภพ"
 all_selected_planets = []
 for house in houses:
     all_selected_planets.extend(st.session_state[f"sel_{house}"])
@@ -84,10 +83,9 @@ for house in houses:
 selections_names = {}
 selections_thai_nums = {}
 
-# คำนวณหาว่าแต่ละภพตรงกับราศีอะไร (และราศีไหนตกภพอะไร) เตรียมไว้ใช้ล่วงหน้า
 house_zodiac_map = {}
 zodiac_house_map = {}
-ascendant_sign = st.session_state.get("sel_zodiac", "ไม่ระบุ") # เตรียมไว้ตรวจสอบ
+ascendant_sign = st.session_state.get("sel_zodiac", "ไม่ระบุ")
 
 # --- คอลัมน์กลาง: ตัวเลือกดาว ---
 with col_mid:
@@ -95,7 +93,6 @@ with col_mid:
     
     ascendant_sign = st.selectbox("ลัคนาสถิตราศี", options=zodiac_signs, key="sel_zodiac")
     
-    # คำนวณแผนที่ราศี-ภพเมื่อผู้ใช้เลือกลัคนาแล้ว
     if ascendant_sign != "ไม่ระบุ":
         asc_idx = zodiac_signs.index(ascendant_sign) - 1 
         for i, h in enumerate(houses):
@@ -109,9 +106,7 @@ with col_mid:
     
     for house in houses:
         current_selection = st.session_state[f"sel_{house}"]
-        # ดาวที่เลือกในภพ "อื่น" ที่ไม่ใช่ภพนี้
         other_houses_selection = [p for p in all_selected_planets if p not in current_selection]
-        # ตัวเลือกที่สามารถเลือกได้ = ดาวทั้งหมด หักออกด้วยดาวที่อยู่ภพอื่นแล้ว
         available_options = [p for p in list(planets_map.keys()) if p not in other_houses_selection]
 
         selected = st.multiselect(
@@ -174,7 +169,7 @@ with col_right:
 
             elif cond_type == "zodiac":
                 if ascendant_sign == "ไม่ระบุ":
-                    is_match = False # ถ้ายันต์ไม่ผูกลัคนา เช็คตามราศีไม่ได้
+                    is_match = False
                 else:
                     for req_zodiac, req_planets in rule["conditions"].items():
                         target_house = zodiac_house_map.get(req_zodiac)
@@ -191,13 +186,12 @@ with col_right:
             if is_match:
                 matched_rules.append(rule)
                 
-        # แสดงผลกฎเกณฑ์พิเศษโดยแยกสีตามคำทำนาย ดี/ร้าย
         if matched_rules:
             for match in matched_rules:
                 if match.get("type") == "good":
                     bg_color, border_color, accent_color, text_color = "#f0fdf4", "#bbf7d0", "#16a34a", "#14532d"
                     icon, title_text = "🌟", "เกณฑ์ให้คุณ (สิริมงคล)"
-                else: # type == bad หรือไม่ได้ระบุ
+                else:
                     bg_color, border_color, accent_color, text_color = "#fef2f2", "#f87171", "#dc2626", "#7f1d1d"
                     icon, title_text = "🚨", "คำทำนายเกณฑ์พิเศษ (พินทุบาทว์ / ดาวผสม)"
 
@@ -210,7 +204,7 @@ with col_right:
                 )
                 st.markdown(special_html, unsafe_allow_html=True)
     
-    # 2. แสดงผลคำทำนายรายภพ และ ราศี (แบบปกติ)
+    # 2. แสดงผลคำทำนายรายภพ, ราศี และ นิจ
     if selections_names:
         has_prediction = False
         for house, selected_planets in selections_names.items():
@@ -234,8 +228,13 @@ with col_right:
                             bg_color, border_color, accent_color = "#ecfdf5", "#a7f3d0", "#059669"
                             
                         zodiac_section = ""
+                        neech_badge = ""
+                        neech_section = ""
+                        
                         if house in house_zodiac_map:
                             current_zodiac = house_zodiac_map[house]
+                            
+                            # 2.1 ตรวจสอบคำทำนายรายราศี
                             zodiac_pred_info = zodiac_planets_data.get(current_zodiac, {}).get(planet)
                             if zodiac_pred_info:
                                 zodiac_text = zodiac_pred_info["text"]
@@ -244,16 +243,33 @@ with col_right:
                                     f'<span style="font-size: 13px; font-weight: 600; color: {accent_color}; margin-bottom: 4px; display: block; opacity: 0.8;">ความหมายดาวสถิตราศี{current_zodiac}</span>'
                                     f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{zodiac_text}</p>'
                                 )
+
+                            # 2.2 ตรวจสอบมาตรฐานนิจ (Neech)
+                            if planet in neech_data and current_zodiac == neech_data[planet]["sign"]:
+                                neech_text = neech_data[planet]["text"]
+                                # Badge เล็กๆ ท้ายชื่อดาว
+                                neech_badge = f'<span style="background-color: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 9999px; font-size: 12px; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 4px;"><span>⬇️</span> นิจ</span>'
+                                # กรอบคำทำนายแทรกอยู่ข้างในการ์ด
+                                neech_section = (
+                                    f'<div style="background-color: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; padding: 12px; margin-top: 16px;">'
+                                    f'<span style="font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 4px; display: block;">⬇️ คำทำนายเกณฑ์มาตรฐาน: นิจ (เสื่อมกำลัง)</span>'
+                                    f'<p style="font-size: 16px; color: #475569; margin: 0; line-height: 1.5;">{neech_text}</p>'
+                                    f'</div>'
+                                )
                         
                         html_card = (
                             f'<div style="font-family: \'Sarabun\', sans-serif; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {accent_color}; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">'
                             f'<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px;">'
                             f'<span style="font-size: 15px; font-weight: 600; color: #64748b; letter-spacing: 0.5px;">{position_title}</span>'
+                            f'<div style="display: flex; align-items: center; gap: 8px;">'
+                            f'{neech_badge}'
                             f'<span style="background-color: white; color: {accent_color}; padding: 4px 14px; border-radius: 9999px; font-weight: bold; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">{planet}</span>'
+                            f'</div>'
                             f'</div>'
                             f'<span style="font-size: 13px; font-weight: 600; color: {accent_color}; margin-bottom: 4px; display: block; opacity: 0.8;">ความหมายตามภพ ({house})</span>'
                             f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{prediction_text}</p>'
                             f'{zodiac_section}'
+                            f'{neech_section}'
                             f'</div>'
                         )
                         st.markdown(html_card, unsafe_allow_html=True)
