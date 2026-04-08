@@ -65,7 +65,7 @@ astrology_database = {
     "วินาศ": {"title": "เป็นสิบสองกับลัคนา (ภพวินาศ)", "data": winat_data},
 }
 
-st.markdown("<h1 style='text-align: center;'>⭐ คำทำนายดวงดาวกำเนิด</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>⭐</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #64748b; margin-bottom: 30px;'>ระบุดาวลงในภพต่างๆ เพื่อสร้างผังราศีจักรและอ่านคำทำนายจากคัมภีร์จักรทีปนี</p>", unsafe_allow_html=True)
 st.divider()
 
