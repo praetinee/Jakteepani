@@ -3,6 +3,8 @@ from data_gumluk import gumluk_data
 from data_kadumpa import kadumpa_data
 from data_sahatcha import sahatcha_data
 from data_puntu import puntu_data
+from data_putta import putta_data
+from data_ari import ari_data
 
 # ตั้งค่าหน้าเพจ Streamlit
 st.set_page_config(
@@ -16,7 +18,9 @@ astrology_database = {
     "สถิตย์อยู่กับลัคนา (กุมลัคน์)": gumluk_data,
     "เป็นสองกับลัคนา (ภพกดุมภะ)": kadumpa_data,
     "เป็นสามกับลัคนา (ภพสหัชชะ)": sahatcha_data,
-    "เป็นสี่กับลัคนา (ภพพันธุ)": puntu_data
+    "เป็นสี่กับลัคนา (ภพพันธุ)": puntu_data,
+    "เป็นห้ากับลัคนา (ภพปุตตะ)": putta_data,
+    "เป็นหกกับลัคนา (ภพอริ)": ari_data
 }
 
 # ส่วนหัวของแอปพลิเคชัน
