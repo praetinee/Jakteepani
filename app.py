@@ -8,6 +8,9 @@ from data_ari import ari_data
 from data_patni import patni_data
 from data_morana import morana_data
 from data_subha import subha_data
+from data_kamma import kamma_data
+from data_lapha import lapha_data
+from data_winat import winat_data
 
 # ตั้งค่าหน้าเพจ Streamlit เป็นแบบ Wide เพื่อให้มีพื้นที่สำหรับ 2 คอลัมน์
 st.set_page_config(
@@ -54,6 +57,9 @@ astrology_database = {
     "ปัตนิ": {"title": "เป็นเจ็ดกับลัคนา (ภพปัตนิ)", "data": patni_data},
     "มรณะ": {"title": "เป็นแปดกับลัคนา (ภพมรณะ)", "data": morana_data},
     "ศุภะ": {"title": "เป็นเก้ากับลัคนา (ภพศุภะ)", "data": subha_data},
+    "กัมมะ": {"title": "เป็นสิบกับลัคนา (ภพกัมมะ)", "data": kamma_data},
+    "ลาภะ": {"title": "เป็นสิบเอ็ดกับลัคนา (ภพลาภะ)", "data": lapha_data},
+    "วินาศ": {"title": "เป็นสิบสองกับลัคนา (ภพวินาศ)", "data": winat_data},
 }
 
 # ส่วนหัวของแอปพลิเคชัน
