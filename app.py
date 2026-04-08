@@ -99,9 +99,6 @@ selections_thai_nums = {}
 with col_mid:
     st.markdown("<h3 style='text-align: center; color: #334155; margin-bottom: 20px;'>📝 ระบุดาวสถิต</h3>", unsafe_allow_html=True)
     
-    # เพิ่มปุ่มล้างข้อมูลทั้งหมดตรงนี้
-    st.button("🔄 ล้างข้อมูลทั้งหมด", on_click=clear_selections, use_container_width=True)
-    
     for house in houses:
         selected = st.multiselect(
             f"{house_labels[house]}", 
@@ -147,6 +144,11 @@ def generate_zodiac_grid(selections):
 with col_left:
     st.markdown("<h3 style='text-align: center; color: #334155; margin-bottom: 20px;'>🔮 ดวงราศีจักร</h3>", unsafe_allow_html=True)
     st.markdown(generate_zodiac_grid(selections_thai_nums), unsafe_allow_html=True)
+    
+    # เพิ่มระยะห่างเล็กน้อยก่อนแสดงปุ่ม
+    st.markdown("<br>", unsafe_allow_html=True)
+    # เพิ่มปุ่มล้างข้อมูลทั้งหมดไว้ใต้ตารางราศีจักร
+    st.button("🔄 ล้างข้อมูลทั้งหมด", on_click=clear_selections, use_container_width=True)
 
 # --- คอลัมน์ขวา: แสดงผลคำทำนาย ---
 with col_right:
