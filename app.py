@@ -13,9 +13,8 @@ from data_lapha import lapha_data
 from data_winat import winat_data
 from data_zodiac_planets import zodiac_planets_data
 from data_special_rules import special_rules
-from data_neech import neech_data # นำเข้าข้อมูลมาตรฐานนิจ
+from data_neech import neech_data
 
-# ตั้งค่าหน้าเพจ Streamlit
 st.set_page_config(page_title="Chakkathipani", page_icon="⭐", layout="wide")
 
 st.markdown("""
@@ -66,7 +65,7 @@ astrology_database = {
     "วินาศ": {"title": "เป็นสิบสองกับลัคนา (ภพวินาศ)", "data": winat_data},
 }
 
-st.markdown("<h1 style='text-align: center;'>⭐</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>⭐ คำทำนายดวงดาวกำเนิด</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #64748b; margin-bottom: 30px;'>ระบุดาวลงในภพต่างๆ เพื่อสร้างผังราศีจักรและอ่านคำทำนายจากคัมภีร์จักรทีปนี</p>", unsafe_allow_html=True)
 st.divider()
 
@@ -151,7 +150,7 @@ with col_left:
 with col_right:
     st.markdown("<h3 style='text-align: center; color: #334155; margin-bottom: 20px;'>✨ ความหมายดาว</h3>", unsafe_allow_html=True)
     
-    # 1. เช็คเกณฑ์พิเศษ (Special Rules) อิงตาม "ภพ" และ "ราศี"
+    # 1. เช็คเกณฑ์พิเศษ (Special Rules)
     if selections_names:
         matched_rules = []
         for rule in special_rules:
@@ -183,6 +182,20 @@ with col_right:
                                 break
                         if not is_match: break
             
+            # --- ตรรกะใหม่สำหรับ "คู่อสีติร่วมธาตุ" ที่เช็คทั้งลัคนาและราศี ---
+            elif cond_type == "ascendant_and_house":
+                mapped_ascendant = "พิจิก" if "พิจิก" in ascendant_sign else ascendant_sign
+                if mapped_ascendant != rule.get("req_ascendant"):
+                    is_match = False
+                else:
+                    for req_house, req_planets in rule["conditions"].items():
+                        user_planets_in_house = selections_names.get(req_house, [])
+                        for p in req_planets:
+                            if p not in user_planets_in_house:
+                                is_match = False
+                                break
+                        if not is_match: break
+
             if is_match:
                 matched_rules.append(rule)
                 
@@ -190,7 +203,7 @@ with col_right:
             for match in matched_rules:
                 if match.get("type") == "good":
                     bg_color, border_color, accent_color, text_color = "#f0fdf4", "#bbf7d0", "#16a34a", "#14532d"
-                    icon, title_text = "🌟", "เกณฑ์ให้คุณ (สิริมงคล)"
+                    icon, title_text = "🌟", "เกณฑ์ให้คุณ (สิริมงคล/โยคเกณฑ์)"
                 else:
                     bg_color, border_color, accent_color, text_color = "#fef2f2", "#f87171", "#dc2626", "#7f1d1d"
                     icon, title_text = "🚨", "คำทำนายเกณฑ์พิเศษ (พินทุบาทว์ / ดาวผสม)"
@@ -234,7 +247,6 @@ with col_right:
                         if house in house_zodiac_map:
                             current_zodiac = house_zodiac_map[house]
                             
-                            # 2.1 ตรวจสอบคำทำนายรายราศี
                             zodiac_pred_info = zodiac_planets_data.get(current_zodiac, {}).get(planet)
                             if zodiac_pred_info:
                                 zodiac_text = zodiac_pred_info["text"]
@@ -244,12 +256,9 @@ with col_right:
                                     f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{zodiac_text}</p>'
                                 )
 
-                            # 2.2 ตรวจสอบมาตรฐานนิจ (Neech)
                             if planet in neech_data and current_zodiac == neech_data[planet]["sign"]:
                                 neech_text = neech_data[planet]["text"]
-                                # Badge เล็กๆ ท้ายชื่อดาว
                                 neech_badge = f'<span style="background-color: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 9999px; font-size: 12px; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 4px;"><span>⬇️</span> นิจ</span>'
-                                # กรอบคำทำนายแทรกอยู่ข้างในการ์ด
                                 neech_section = (
                                     f'<div style="background-color: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; padding: 12px; margin-top: 16px;">'
                                     f'<span style="font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 4px; display: block;">⬇️ คำทำนายเกณฑ์มาตรฐาน: นิจ (เสื่อมกำลัง)</span>'
