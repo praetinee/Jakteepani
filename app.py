@@ -19,13 +19,18 @@ st.set_page_config(
     layout="wide"
 )
 
-# ฝัง CSS เพื่อบังคับใช้ฟอนต์ Sarabun ทั้งหน้าเว็บ
+# ฝัง CSS เพื่อบังคับใช้ฟอนต์ Sarabun ทั้งหน้าเว็บ และจัดคอลัมน์กึ่งกลางแนวตั้ง
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
 
 html, body, [class*="css"], div, span, h1, h2, h3, h4, h5, h6, p, a, label, button, input, select {
     font-family: 'Sarabun', sans-serif !important;
+}
+
+/* จัดกึ่งกลางคอลัมน์ตามแนวตั้ง */
+[data-testid="stHorizontalBlock"] {
+    align-items: center;
 }
 </style>
 """, unsafe_allow_html=True)
