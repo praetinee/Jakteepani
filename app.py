@@ -8,7 +8,7 @@ from data_ari import ari_data
 
 # ตั้งค่าหน้าเพจ Streamlit
 st.set_page_config(
-    page_title="คำทำนายดวงดาวกำเนิด",
+    page_title="Chakkathipani",
     page_icon="⭐",
     layout="centered"
 )
