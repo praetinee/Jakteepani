@@ -46,10 +46,18 @@ planets_map = {
 houses = ["ลัคนา", "กดุมภะ", "สหัชชะ", "พันธุ", "ปุตตะ", "อริ", 
           "ปัตนิ", "มรณะ", "ศุภะ", "กัมมะ", "ลาภะ", "วินาศ"]
 
-# ฟังก์ชันสำหรับล้างข้อมูลการเลือกดาวทั้งหมด
+# 3. รายชื่อราศี
+zodiac_signs = [
+    "ไม่ระบุ", "เมษ", "พฤษภ", "เมถุน", "กรกฎ", "สิงห์", "กันย์", 
+    "ตุลย์", "พิจิก (กีฏะราศี)", "ธนู", "มังกร", "กุมภ์", "มีน"
+]
+
+# ฟังก์ชันสำหรับล้างข้อมูลการเลือกดาวทั้งหมด และล้างราศี
 def clear_selections():
     for house in houses:
         st.session_state[f"sel_{house}"] = []
+    if "sel_zodiac" in st.session_state:
+        st.session_state["sel_zodiac"] = "ไม่ระบุ"
 
 # สร้าง Dictionary เพื่อเก็บชื่อสำหรับแสดงผลในช่องเลือกดาว
 house_labels = {
@@ -98,6 +106,15 @@ selections_thai_nums = {}
 # --- คอลัมน์กลาง: ตัวเลือกดาว (เรียงยาวลงมาแถวเดียว) ---
 with col_mid:
     st.markdown("<h3 style='text-align: center; color: #334155; margin-bottom: 20px;'>📝 ระบุดาวสถิต</h3>", unsafe_allow_html=True)
+    
+    # เพิ่มช่องเลือกลัคนาราศี
+    ascendant_sign = st.selectbox(
+        "ลัคนาสถิตราศี", 
+        options=zodiac_signs, 
+        key="sel_zodiac"
+    )
+    
+    st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
     
     for house in houses:
         selected = st.multiselect(
@@ -167,25 +184,33 @@ with col_right:
                     if planet in db_info["data"]:
                         result_data = db_info["data"][planet]
                         
-                        # กำหนดสีเริ่มต้นจากฐานข้อมูล
+                        # กำหนดสีและข้อความเริ่มต้นจากฐานข้อมูล
                         bg_color = result_data["bg"]
                         border_color = result_data["border"]
                         accent_color = result_data["color"]
+                        prediction_text = result_data["text"]
                         
                         # แทรกการเปลี่ยนสีพระอังคารให้เป็นโทนสีชมพู
                         if planet == "พระอังคาร (3)":
                             bg_color = "#fdf2f8"      # พื้นหลังสีชมพูอ่อน
                             border_color = "#fbcfe8"  # กรอบสีชมพู
                             accent_color = "#ec4899"  # แถบและตัวหนังสือสีชมพูเข้ม
+                            
+                        # แทรกเงื่อนไขข้อยกเว้น: ลัคนาสถิตกีฏะราศี สำหรับภพวินาศ
+                        if house == "วินาศ" and ascendant_sign == "พิจิก (กีฏะราศี)":
+                            prediction_text = "กลับให้คุณ หาอันตรายมิได้ (ข้อยกเว้น: ลัคนาสถิตในกีฏะราศี)"
+                            # เปลี่ยนสีให้เป็นโทนสีเขียว เพื่อแสดงผลในเชิงบวก
+                            bg_color = "#ecfdf5"
+                            border_color = "#a7f3d0"
+                            accent_color = "#059669"
                         
-                        # แก้ไขตรงนี้ นำเครื่องหมาย " ออกจากข้อความ
                         html_card = (
                             f'<div style="font-family: \'Sarabun\', sans-serif; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {accent_color}; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">'
                             f'<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px;">'
                             f'<span style="font-size: 15px; font-weight: 600; color: #64748b; letter-spacing: 0.5px;">{position_title}</span>'
                             f'<span style="background-color: white; color: {accent_color}; padding: 4px 14px; border-radius: 9999px; font-weight: bold; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">{planet}</span>'
                             f'</div>'
-                            f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{result_data["text"]}</p>'
+                            f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{prediction_text}</p>'
                             f'</div>'
                         )
                         st.markdown(html_card, unsafe_allow_html=True)
