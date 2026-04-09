@@ -15,6 +15,7 @@ from data_zodiac_planets import zodiac_planets_data
 from data_special_rules import special_rules
 from data_neech import neech_data
 from data_ongkeen import ongkeen_rules
+from data_trikun import trikun_data # นำเข้าข้อมูลเกณฑ์ตรีกูล
 
 st.set_page_config(page_title="Chakkathipani", page_icon="⭐", layout="wide")
 
@@ -160,7 +161,7 @@ with col_left:
 with col_right:
     st.markdown("<h3 style='text-align: center; color: #334155; margin-bottom: 20px;'>✨ ความหมายดาว</h3>", unsafe_allow_html=True)
     
-    # 1. เช็คเกณฑ์พิเศษ (Special Rules)
+    # 1. เช็คเกณฑ์พิเศษ (Special Rules ที่แจ้งเตือนภาพรวมดวงชะตา)
     if selections_names:
         matched_rules = []
         for rule in special_rules:
@@ -192,7 +193,6 @@ with col_right:
                                 break
                         if not is_match: break
             
-            # --- ตรรกะสำหรับ "คู่อสีติร่วมธาตุ" ที่เช็คทั้งลัคนาและราศี ---
             elif cond_type == "ascendant_and_house":
                 mapped_ascendant = "พิจิก" if "พิจิก" in ascendant_sign else ascendant_sign
                 if mapped_ascendant != rule.get("req_ascendant"):
@@ -206,7 +206,6 @@ with col_right:
                                 break
                         if not is_match: break
                         
-            # --- ตรรกะสำหรับ "ราชลัคนา" ที่เช็คแค่ลัคนาอย่างเดียว ---
             elif cond_type == "ascendant_only":
                 mapped_ascendant = "พิจิก" if "พิจิก" in ascendant_sign else ascendant_sign
                 if mapped_ascendant != rule.get("req_ascendant"):
@@ -233,86 +232,128 @@ with col_right:
                 )
                 st.markdown(special_html, unsafe_allow_html=True)
     
-    # 2. แสดงผลคำทำนายรายภพ, ราศี และ นิจ/องค์เกณฑ์
+    # 2. คำนวณตำแหน่งตรีกูล (ห่างจากพระจันทร์ 1, 5, 9)
+    trikun_houses = []
+    moon_house_idx = -1
+    for idx, house in enumerate(houses):
+        if "พระจันทร์ (2)" in selections_names.get(house, []):
+            moon_house_idx = idx
+            break
+
+    if moon_house_idx != -1:
+        trikun_houses.append(houses[moon_house_idx])
+        trikun_houses.append(houses[(moon_house_idx + 4) % 12])
+        trikun_houses.append(houses[(moon_house_idx + 8) % 12])
+
+    # 3. แสดงผลคำทำนายโดยจัดเรียงตาม "ดาว"
     if selections_names:
         has_prediction = False
-        for house, selected_planets in selections_names.items():
-            if house in astrology_database:
+        
+        # วนลูปเรียงตามลำดับดาว (อาทิตย์ -> ราหู)
+        for planet_name in planets_map.keys():
+            planet_house = None
+            
+            # หาว่าดาวดวงนี้ไปสถิตอยู่ภพไหน
+            for house, selected_planets in selections_names.items():
+                if planet_name in selected_planets:
+                    planet_house = house
+                    break
+            
+            if planet_house and planet_house in astrology_database:
                 has_prediction = True
-                db_info = astrology_database[house]
+                db_info = astrology_database[planet_house]
                 position_title = db_info["title"]
-                for planet in selected_planets:
-                    if planet in db_info["data"]:
-                        result_data = db_info["data"][planet]
-                        bg_color = result_data["bg"]
-                        border_color = result_data["border"]
-                        accent_color = result_data["color"]
-                        prediction_text = result_data["text"]
+                
+                if planet_name in db_info["data"]:
+                    result_data = db_info["data"][planet_name]
+                    bg_color = result_data["bg"]
+                    border_color = result_data["border"]
+                    accent_color = result_data["color"]
+                    prediction_text = result_data["text"]
+                    
+                    if planet_name == "พระอังคาร (3)":
+                        bg_color, border_color, accent_color = "#fdf2f8", "#fbcfe8", "#ec4899"
                         
-                        if planet == "พระอังคาร (3)":
-                            bg_color, border_color, accent_color = "#fdf2f8", "#fbcfe8", "#ec4899"
-                            
-                        if house == "วินาศ" and ascendant_sign == "พิจิก (กีฏะราศี)":
-                            prediction_text = "กลับให้คุณ หาอันตรายมิได้"
-                            bg_color, border_color, accent_color = "#ecfdf5", "#a7f3d0", "#059669"
-                            
-                        zodiac_section = ""
-                        neech_badge = ""
-                        neech_section = ""
-                        ongkeen_badge = ""
-                        ongkeen_section = ""
+                    if planet_house == "วินาศ" and ascendant_sign == "พิจิก (กีฏะราศี)":
+                        prediction_text = "กลับให้คุณ หาอันตรายมิได้"
+                        bg_color, border_color, accent_color = "#ecfdf5", "#a7f3d0", "#059669"
                         
-                        if house in house_zodiac_map:
-                            current_zodiac = house_zodiac_map[house]
-                            
-                            zodiac_pred_info = zodiac_planets_data.get(current_zodiac, {}).get(planet)
-                            if zodiac_pred_info:
-                                zodiac_text = zodiac_pred_info["text"]
-                                zodiac_section = (
-                                    f'<div style="border-top: 1px dashed rgba(0,0,0,0.1); margin: 12px 0; padding-top: 12px;"></div>'
-                                    f'<span style="font-size: 13px; font-weight: 600; color: {accent_color}; margin-bottom: 4px; display: block; opacity: 0.8;">ความหมายดาวสถิตราศี{current_zodiac}</span>'
-                                    f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{zodiac_text}</p>'
-                                )
+                    zodiac_section = ""
+                    neech_badge = ""
+                    neech_section = ""
+                    ongkeen_badge = ""
+                    ongkeen_section = ""
+                    trikun_badge = ""
+                    trikun_section = ""
+                    
+                    current_zodiac = house_zodiac_map.get(planet_house, "")
+                    
+                    if current_zodiac:
+                        # ข้อมูลตามราศี
+                        zodiac_pred_info = zodiac_planets_data.get(current_zodiac, {}).get(planet_name)
+                        if zodiac_pred_info:
+                            zodiac_text = zodiac_pred_info["text"]
+                            zodiac_section = (
+                                f'<div style="border-top: 1px dashed rgba(0,0,0,0.1); margin: 12px 0; padding-top: 12px;"></div>'
+                                f'<span style="font-size: 13px; font-weight: 600; color: {accent_color}; margin-bottom: 4px; display: block; opacity: 0.8;">ความหมายดาวสถิตราศี{current_zodiac}</span>'
+                                f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{zodiac_text}</p>'
+                            )
 
-                            if planet in neech_data and current_zodiac == neech_data[planet]["sign"]:
-                                neech_text = neech_data[planet]["text"]
-                                neech_badge = f'<span style="background-color: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 9999px; font-size: 12px; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 4px;"><span>⬇️</span> นิจ</span>'
-                                neech_section = (
-                                    f'<div style="background-color: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; padding: 12px; margin-top: 16px;">'
-                                    f'<span style="font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 4px; display: block;">⬇️ คำทำนายเกณฑ์มาตรฐาน: นิจ (เสื่อมกำลัง)</span>'
-                                    f'<p style="font-size: 16px; color: #475569; margin: 0; line-height: 1.5;">{neech_text}</p>'
-                                    f'</div>'
-                                )
-
-                        # 2.3 ตรวจสอบอุดมเกณฑ์ (องค์เกณฑ์)
-                        if house == ongkeen_target_house and planet in ongkeen_rules["predictions"]:
-                            ongkeen_text = ongkeen_rules["predictions"][planet]
-                            ongkeen_badge = f'<span style="background-color: #fef9c3; color: #854d0e; padding: 2px 8px; border-radius: 9999px; font-size: 12px; border: 1px solid #fde047; display: inline-flex; align-items: center; gap: 4px;"><span>👑</span> องค์เกณฑ์</span>'
-                            ongkeen_section = (
-                                f'<div style="background-color: rgba(254,249,195,0.4); border: 1px solid rgba(253,224,71,0.5); border-radius: 8px; padding: 12px; margin-top: 16px;">'
-                                f'<span style="font-size: 13px; font-weight: 600; color: #a16207; margin-bottom: 4px; display: block;">👑 คำทำนายอุดมเกณฑ์ (องค์เกณฑ์)</span>'
-                                f'<p style="font-size: 16px; color: #713f12; margin: 0; line-height: 1.5;">{ongkeen_text}</p>'
+                        # ข้อมูลมาตรฐานนิจ
+                        if planet_name in neech_data and current_zodiac == neech_data[planet_name]["sign"]:
+                            neech_text = neech_data[planet_name]["text"]
+                            neech_badge = f'<span style="background-color: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 9999px; font-size: 12px; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 4px;"><span>⬇️</span> นิจ</span>'
+                            neech_section = (
+                                f'<div style="background-color: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; padding: 12px; margin-top: 16px;">'
+                                f'<span style="font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 4px; display: block;">⬇️ คำทำนายเกณฑ์มาตรฐาน: นิจ (เสื่อมกำลัง)</span>'
+                                f'<p style="font-size: 16px; color: #475569; margin: 0; line-height: 1.5;">{neech_text}</p>'
                                 f'</div>'
                             )
-                        
-                        html_card = (
-                            f'<div style="font-family: \'Sarabun\', sans-serif; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {accent_color}; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">'
-                            f'<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px;">'
-                            f'<span style="font-size: 15px; font-weight: 600; color: #64748b; letter-spacing: 0.5px;">{position_title}</span>'
-                            f'<div style="display: flex; align-items: center; gap: 8px;">'
-                            f'{ongkeen_badge}'
-                            f'{neech_badge}'
-                            f'<span style="background-color: white; color: {accent_color}; padding: 4px 14px; border-radius: 9999px; font-weight: bold; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">{planet}</span>'
-                            f'</div>'
-                            f'</div>'
-                            f'<span style="font-size: 13px; font-weight: 600; color: {accent_color}; margin-bottom: 4px; display: block; opacity: 0.8;">ความหมายตามภพ ({house})</span>'
-                            f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{prediction_text}</p>'
-                            f'{zodiac_section}'
-                            f'{ongkeen_section}'
-                            f'{neech_section}'
+
+                    # ข้อมูลอุดมเกณฑ์ (องค์เกณฑ์)
+                    if planet_house == ongkeen_target_house and planet_name in ongkeen_rules["predictions"]:
+                        ongkeen_text = ongkeen_rules["predictions"][planet_name]
+                        ongkeen_badge = f'<span style="background-color: #fef9c3; color: #854d0e; padding: 2px 8px; border-radius: 9999px; font-size: 12px; border: 1px solid #fde047; display: inline-flex; align-items: center; gap: 4px;"><span>👑</span> องค์เกณฑ์</span>'
+                        ongkeen_section = (
+                            f'<div style="background-color: rgba(254,249,195,0.4); border: 1px solid rgba(253,224,71,0.5); border-radius: 8px; padding: 12px; margin-top: 16px;">'
+                            f'<span style="font-size: 13px; font-weight: 600; color: #a16207; margin-bottom: 4px; display: block;">👑 คำทำนายอุดมเกณฑ์ (องค์เกณฑ์)</span>'
+                            f'<p style="font-size: 16px; color: #713f12; margin: 0; line-height: 1.5;">{ongkeen_text}</p>'
                             f'</div>'
                         )
-                        st.markdown(html_card, unsafe_allow_html=True)
+                        
+                    # ข้อมูลเกณฑ์ตรีกูล (นับจากพระจันทร์)
+                    if planet_house in trikun_houses and planet_name in trikun_data:
+                        trikun_text = trikun_data[planet_name]
+                        trikun_badge = f'<span style="background-color: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 9999px; font-size: 12px; border: 1px solid #bae6fd; display: inline-flex; align-items: center; gap: 4px;"><span>🔺</span> ตรีกูล</span>'
+                        trikun_section = (
+                            f'<div style="background-color: rgba(224,242,254,0.4); border: 1px solid rgba(186,230,253,0.5); border-radius: 8px; padding: 12px; margin-top: 16px;">'
+                            f'<span style="font-size: 13px; font-weight: 600; color: #0284c7; margin-bottom: 4px; display: block;">🔺 คำทำนายเกณฑ์พิเศษ: ตรีกูล</span>'
+                            f'<p style="font-size: 16px; color: #075985; margin: 0; line-height: 1.5;">{trikun_text}</p>'
+                            f'</div>'
+                        )
+                    
+                    # สร้างการ์ดคำทำนายรวบยอดสำหรับดาวแต่ละดวง
+                    html_card = (
+                        f'<div style="font-family: \'Sarabun\', sans-serif; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 6px solid {accent_color}; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">'
+                        f'<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">'
+                        f'<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">'
+                        f'<span style="background-color: white; color: {accent_color}; padding: 6px 16px; border-radius: 9999px; font-weight: bold; font-size: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">{planet_name}</span>'
+                        f'<div style="display: flex; gap: 6px; flex-wrap: wrap;">{ongkeen_badge}{neech_badge}{trikun_badge}</div>'
+                        f'</div>'
+                        f'<div style="text-align: right;">'
+                        f'<span style="font-size: 14px; font-weight: 600; color: #64748b; display: block;">สถิต{position_title}</span>'
+                        f'<span style="font-size: 13px; color: #94a3b8;">ราศี{current_zodiac}</span>'
+                        f'</div>'
+                        f'</div>'
+                        f'<span style="font-size: 13px; font-weight: 600; color: {accent_color}; margin-bottom: 4px; display: block; opacity: 0.8;">ความหมายตามภพ ({planet_house})</span>'
+                        f'<p style="font-size: 18px; color: #1e293b; margin: 0; line-height: 1.6;">{prediction_text}</p>'
+                        f'{zodiac_section}'
+                        f'{ongkeen_section}'
+                        f'{neech_section}'
+                        f'{trikun_section}'
+                        f'</div>'
+                    )
+                    st.markdown(html_card, unsafe_allow_html=True)
                     
         if not has_prediction:
             st.info("ท่านได้กรอกดาวลงในตารางราศีจักรแล้ว (คำทำนายในภพที่เลือกจะถูกอัปเดตเข้าระบบในภายหลัง)")
