@@ -205,6 +205,12 @@ with col_right:
                                 is_match = False
                                 break
                         if not is_match: break
+                        
+            # --- ตรรกะสำหรับ "ราชลัคนา" ที่เช็คแค่ลัคนาอย่างเดียว ---
+            elif cond_type == "ascendant_only":
+                mapped_ascendant = "พิจิก" if "พิจิก" in ascendant_sign else ascendant_sign
+                if mapped_ascendant != rule.get("req_ascendant"):
+                    is_match = False
 
             if is_match:
                 matched_rules.append(rule)
